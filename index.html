@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>One Click Delete</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel">
+        <h1>One Click Delete</h1>
+        <p>This page is the Trello Power-Up iframe connector.</p>
+      </section>
+    </main>
+
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+    <script>
+      const APP_KEY = "PASTE_TRELLO_POWERUP_API_KEY_HERE";
+      const APP_NAME = "One Click Delete";
+
+      function showAuthorizePopup(t) {
+        return t.popup({
+          title: "Authorise One Click Delete",
+          url: "./authorize.html",
+          height: 180
+        });
+      }
+
+      async function showStatusPopup(t, message) {
+        return t.popup({
+          title: "One Click Delete",
+          items: [
+            {
+              text: message,
+              callback: function (popupT) {
+                return popupT.closePopup();
+              }
+            }
+          ]
+        });
+      }
+
+      async function deleteCurrentCard(t) {
+        try {
+          const card = await t.card("id");
+          const restApi = await t.getRestApi();
+          const token = await restApi.getToken();
+
+          if (!card || !card.id || !token) {
+            return showStatusPopup(t, "Failed to delete card. Check permissions and try again.");
+          }
+
+          const deleteUrl = new URL("https://api.trello.com/1/cards/" + encodeURIComponent(card.id));
+          deleteUrl.searchParams.set("key", APP_KEY);
+          deleteUrl.searchParams.set("token", token);
+
+          const response = await fetch(deleteUrl.toString(), {
+            method: "DELETE"
+          });
+
+          if (!response.ok) {
+            throw new Error("Trello returned " + response.status);
+          }
+
+          if (typeof t.closePopup === "function") {
+            try {
+              await t.closePopup();
+            } catch (closeError) {
+              // The delete button is on the card itself, so there may be no popup to close.
+            }
+          }
+
+          return showStatusPopup(t, "Card deleted. Refresh board if it still appears.");
+        } catch (error) {
+          return showStatusPopup(t, "Failed to delete card. Check permissions and try again.");
+        }
+      }
+
+      window.TrelloPowerUp.initialize(
+        {
+          "card-buttons": async function (t) {
+            try {
+              const restApi = await t.getRestApi();
+              const isAuthorized = await restApi.isAuthorized();
+
+              if (!isAuthorized) {
+                return [
+                  {
+                    text: "Authorise One Click Delete",
+                    callback: showAuthorizePopup,
+                    condition: "edit"
+                  }
+                ];
+              }
+
+              return [
+                {
+                  text: "Delete card",
+                  callback: deleteCurrentCard,
+                  condition: "edit"
+                }
+              ];
+            } catch (error) {
+              return [
+                {
+                  text: "Authorise One Click Delete",
+                  callback: showAuthorizePopup,
+                  condition: "edit"
+                }
+              ];
+            }
+          }
+        },
+        {
+          appKey: APP_KEY,
+          appName: APP_NAME
+        }
+      );
+    </script>
+  </body>
+</html>

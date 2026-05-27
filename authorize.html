@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Authorise One Click Delete</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel">
+        <h1>Authorise</h1>
+        <p id="status">Allow One Click Delete to delete cards on your behalf.</p>
+        <button id="authorize-button" type="button">Authorise One Click Delete</button>
+      </section>
+    </main>
+
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+    <script>
+      const APP_KEY = "PASTE_TRELLO_POWERUP_API_KEY_HERE";
+      const APP_NAME = "One Click Delete";
+
+      const t = window.TrelloPowerUp.iframe({
+        appKey: APP_KEY,
+        appName: APP_NAME
+      });
+
+      const button = document.getElementById("authorize-button");
+      const status = document.getElementById("status");
+
+      t.render(function () {
+        button.addEventListener("click", async function () {
+          button.disabled = true;
+          status.textContent = "Opening Trello authorisation...";
+
+          try {
+            const restApi = await t.getRestApi();
+            await restApi.authorize({
+              scope: "read,write",
+              expiration: "never"
+            });
+
+            status.textContent = "Authorised. You can close this window and use the delete button.";
+            button.hidden = true;
+          } catch (error) {
+            status.textContent = "Authorisation failed. Please try again.";
+            button.disabled = false;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
