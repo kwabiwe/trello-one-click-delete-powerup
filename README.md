@@ -26,7 +26,7 @@ The Power-Up uses the Trello Power-Up client library and Trello REST API authent
 12. Go to Power-Ups.
 13. Add or enable the private Power-Up from the workspace.
 14. Open a card and authorise the Power-Up.
-15. After authorisation, open any card and click `Delete card` to permanently delete it.
+15. After authorisation, open any card and click `Delete card` to permanently delete it and return to the board.
 
 ## Files
 
@@ -38,4 +38,4 @@ The Power-Up uses the Trello Power-Up client library and Trello REST API authent
 
 - There is intentionally no confirmation prompt.
 - No personal Trello token is stored or hard-coded.
-- If deletion succeeds but Trello does not visually refresh the board immediately, refresh the board.
+- After deletion succeeds, the open card closes automatically.

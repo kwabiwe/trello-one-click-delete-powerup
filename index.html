@@ -63,15 +63,11 @@
             throw new Error("Trello returned " + response.status);
           }
 
-          if (typeof t.closePopup === "function") {
-            try {
-              await t.closePopup();
-            } catch (closeError) {
-              // The delete button is on the card itself, so there may be no popup to close.
-            }
+          try {
+            return await t.hideCard();
+          } catch (hideError) {
+            return showStatusPopup(t, "Card deleted. Close this card to return to the board.");
           }
-
-          return showStatusPopup(t, "Card deleted. Refresh board if it still appears.");
         } catch (error) {
           return showStatusPopup(t, "Failed to delete card. Check permissions and try again.");
         }
